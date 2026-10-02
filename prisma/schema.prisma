@@ -1,0 +1,383 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  SALES_STAFF
+  INVENTORY_STAFF
+  ACCOUNTANT
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum PurchaseStatus {
+  PENDING
+  RECEIVED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  PAID
+  PARTIALLY_PAID
+  UNPAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  OTHER
+}
+
+model Business {
+  id            String   @id @default(uuid())
+  name          String
+  logo          String?
+  address       String?
+  phone         String?
+  email         String?
+  currency      String   @default("LKR")
+  taxRate       Float    @default(0.0)
+  invoicePrefix String   @default("INV-")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  users             User[]
+  customers         Customer[]
+  suppliers         Supplier[]
+  categories        Category[]
+  products          Product[]
+  purchases         Purchase[]
+  sales             Sale[]
+  invoices          Invoice[]
+  payments          Payment[]
+  expenseCategories ExpenseCategory[]
+  expenses          Expense[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+
+  @@map("businesses")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  businessId   String?
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole  @default(SALES_STAFF)
+  isActive     Boolean   @default(true)
+  refreshToken String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  business       Business?       @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  sales          Sale[]
+  purchases      Purchase[]
+  payments       Payment[]
+  expenses       Expense[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+  stockMovements StockMovement[]
+
+  @@map("users")
+}
+
+model Customer {
+  id         String   @id @default(uuid())
+  businessId String
+  name       String
+  email      String?
+  phone      String?
+  address    String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sales    Sale[]
+
+  @@map("customers")
+}
+
+model Supplier {
+  id            String   @id @default(uuid())
+  businessId    String
+  companyName   String
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  business  Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  products  Product[]
+  purchases Purchase[]
+
+  @@map("suppliers")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  businessId  String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  businessId   String
+  categoryId   String?
+  supplierId   String?
+  name         String
+  sku          String   @unique
+  barcode      String?
+  description  String?
+  costPrice    Float
+  sellingPrice Float
+  currentStock Int      @default(0)
+  minStock     Int      @default(5)
+  unit         String   @default("units")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  business       Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  supplier       Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  stockMovements StockMovement[]
+  purchaseItems  PurchaseItem[]
+  saleItems      SaleItem[]
+
+  @@map("products")
+}
+
+model StockMovement {
+  id          String            @id @default(uuid())
+  productId   String
+  type        StockMovementType
+  quantity    Int
+  reason      String?
+  referenceId String?
+  createdById String?
+  createdAt   DateTime          @default(now())
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@map("stock_movements")
+}
+
+model Purchase {
+  id            String         @id @default(uuid())
+  businessId    String
+  supplierId    String
+  orderNumber   String         @unique
+  purchaseDate  DateTime       @default(now())
+  subtotal      Float
+  discount      Float          @default(0.0)
+  tax           Float          @default(0.0)
+  total         Float
+  status        PurchaseStatus @default(PENDING)
+  notes         String?
+  createdById   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  business  Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  supplier  Supplier       @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdBy User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  items     PurchaseItem[]
+  payments  Payment[]
+
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id         String @id @default(uuid())
+  purchaseId String
+  productId  String
+  quantity   Int
+  unitCost   Float
+  total      Float
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("purchase_items")
+}
+
+model Sale {
+  id          String        @id @default(uuid())
+  businessId  String
+  customerId  String?
+  saleNumber  String        @unique
+  saleDate    DateTime      @default(now())
+  subtotal    Float
+  discount    Float         @default(0.0)
+  tax         Float         @default(0.0)
+  total       Float
+  status      InvoiceStatus @default(UNPAID)
+  notes       String?
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  business  Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdBy User?      @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  items     SaleItem[]
+  invoice   Invoice?
+  payments  Payment[]
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id        String @id @default(uuid())
+  saleId    String
+  productId String
+  quantity  Int
+  unitPrice Float
+  total     Float
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("sale_items")
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  businessId    String
+  saleId        String        @unique
+  invoiceNumber String        @unique
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime?
+  subtotal      Float
+  discount      Float         @default(0.0)
+  tax           Float         @default(0.0)
+  total         Float
+  status        InvoiceStatus @default(UNPAID)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sale     Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@map("invoices")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  businessId    String
+  saleId        String?
+  purchaseId    String?
+  invoiceId     String?
+  amount        Float
+  paymentMethod PaymentMethod @default(CASH)
+  paymentDate   DateTime      @default(now())
+  reference     String?
+  notes         String?
+  recordedById  String?
+  createdAt     DateTime      @default(now())
+
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sale       Sale?     @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+  invoice    Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  recordedBy User?     @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@map("payments")
+}
+
+model ExpenseCategory {
+  id          String   @id @default(uuid())
+  businessId  String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  expenses Expense[]
+
+  @@map("expense_categories")
+}
+
+model Expense {
+  id            String        @id @default(uuid())
+  businessId    String
+  categoryId    String
+  title         String
+  amount        Float
+  expenseDate   DateTime      @default(now())
+  paymentMethod PaymentMethod @default(CASH)
+  notes         String?
+  recordedById  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  business   Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  recordedBy User?           @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@map("expenses")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  businessId String
+  userId     String?
+  title      String
+  message    String
+  type       String   @default("INFO")
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  businessId String
+  userId     String?
+  action     String
+  entity     String
+  entityId   String?
+  details    String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
