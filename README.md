@@ -98,7 +98,7 @@ bizflow-erp/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/bizflow-erp.git
+git clone https://github.com/IsuruJayathissa/bizflow-erp.git
 cd bizflow-erp
 
 # Install dependencies across all workspaces
