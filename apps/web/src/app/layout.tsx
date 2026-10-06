@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import QueryProvider from '@/providers/QueryProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'BizFlow ERP - Small Business Management Platform',
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
