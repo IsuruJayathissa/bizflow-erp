@@ -20,6 +20,7 @@ import {
   User as UserIcon,
   Bell,
   Shield,
+  ShieldCheck,
   Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
@@ -49,18 +50,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const navItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Products', href: '/dashboard/products', icon: Package },
-    { label: 'Inventory', href: '/dashboard/inventory', icon: Boxes },
-    { label: 'Sales & Orders', href: '/dashboard/sales', icon: ShoppingCart },
-    { label: 'Invoices', href: '/dashboard/invoices', icon: FileText },
-    { label: 'Purchases', href: '/dashboard/purchases', icon: ShoppingBag },
-    { label: 'Customers', href: '/dashboard/customers', icon: Users },
-    { label: 'Suppliers', href: '/dashboard/suppliers', icon: Truck },
-    { label: 'Expenses', href: '/dashboard/expenses', icon: CreditCard },
-    { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-    { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF', 'INVENTORY_STAFF', 'ACCOUNTANT'] },
+    { label: 'Staff & RBAC', href: '/dashboard/users', icon: ShieldCheck, roles: ['ADMIN'] },
+    { label: 'Products', href: '/dashboard/products', icon: Package, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
+    { label: 'Inventory', href: '/dashboard/inventory', icon: Boxes, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
+    { label: 'Sales & Orders', href: '/dashboard/sales', icon: ShoppingCart, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF'] },
+    { label: 'Invoices', href: '/dashboard/invoices', icon: FileText, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF', 'ACCOUNTANT'] },
+    { label: 'Purchases', href: '/dashboard/purchases', icon: ShoppingBag, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
+    { label: 'Customers', href: '/dashboard/customers', icon: Users, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF'] },
+    { label: 'Suppliers', href: '/dashboard/suppliers', icon: Truck, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
+    { label: 'Expenses', href: '/dashboard/expenses', icon: CreditCard, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
+    { label: 'Reports', href: '/dashboard/reports', icon: BarChart3, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
+    { label: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['ADMIN'] },
   ];
+
+  const visibleNavItems = navItems.filter((item) => item.roles.includes(user.role || 'SALES_STAFF'));
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex">
@@ -82,7 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Nav Items */}
           <nav className="p-3 space-y-1">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
