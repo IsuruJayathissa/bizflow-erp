@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: 'Invoices', href: '/dashboard/invoices', icon: FileText, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF', 'ACCOUNTANT'] },
     { label: 'Purchases', href: '/dashboard/purchases', icon: ShoppingBag, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
     { label: 'Customers', href: '/dashboard/customers', icon: Users, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF', 'ACCOUNTANT'] },
-    { label: 'Suppliers', href: '/dashboard/suppliers', icon: Truck, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
+    { label: 'Suppliers', href: '/dashboard/suppliers', icon: Truck, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF', 'ACCOUNTANT'] },
     { label: 'Expenses', href: '/dashboard/expenses', icon: CreditCard, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
     { label: 'Reports', href: '/dashboard/reports', icon: BarChart3, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
     { label: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['ADMIN'] },
