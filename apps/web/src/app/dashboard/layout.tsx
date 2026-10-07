@@ -14,6 +14,7 @@ import {
   CreditCard,
   Users,
   Truck,
+  FolderTree,
   BarChart3,
   Settings,
   LogOut,
@@ -52,6 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF', 'INVENTORY_STAFF', 'ACCOUNTANT'] },
     { label: 'Staff & RBAC', href: '/dashboard/users', icon: ShieldCheck, roles: ['ADMIN'] },
+    { label: 'Categories', href: '/dashboard/categories', icon: FolderTree, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
     { label: 'Products', href: '/dashboard/products', icon: Package, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
     { label: 'Inventory', href: '/dashboard/inventory', icon: Boxes, roles: ['ADMIN', 'MANAGER', 'INVENTORY_STAFF'] },
     { label: 'Sales & Orders', href: '/dashboard/sales', icon: ShoppingCart, roles: ['ADMIN', 'MANAGER', 'SALES_STAFF'] },
