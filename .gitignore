@@ -38,3 +38,7 @@ Thumbs.db
 # Prisma generated clients if outside node_modules
 prisma/*.db
 prisma/*.db-journal
+
+# Scratch test scripts
+scratch/
+
