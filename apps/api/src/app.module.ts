@@ -11,6 +11,7 @@ import { SuppliersModule } from './suppliers/suppliers.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { PurchasesModule } from './purchases/purchases.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InventoryModule } from './inventory/inventory.module';
     CategoriesModule,
     ProductsModule,
     InventoryModule,
+    PurchasesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
